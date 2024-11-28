@@ -49,17 +49,17 @@ function App() {
   });
 
   // Sound effects with volume control
-  const [playStart] = useSound('https://assets.mixkit.co/active_storage/sfx/2432/2432-preview.mp3', { 
-    volume: isMuted ? 0 : 0.5 
+  const [playStart] = useSound('/sounds/alarm2.mp3', { 
+    volume: isMuted ? 0 : 10
   });
-  const [playEnd] = useSound('https://assets.mixkit.co/active_storage/sfx/1559/1559-preview.mp3', { 
-    volume: isMuted ? 0 : 0.5 
+  const [playEnd] = useSound('/sounds/bell.wav', { 
+    volume: isMuted ? 0 : 10
   });
   const [playWarning] = useSound('https://assets.mixkit.co/active_storage/sfx/1862/1862-preview.mp3', { 
-    volume: isMuted ? 0 : 0.3 
+    volume: isMuted ? 0 : 7
   });
   const [playTick] = useSound('https://assets.mixkit.co/active_storage/sfx/2002/2002-preview.mp3', { 
-    volume: isMuted ? 0 : 0.2 
+    volume: isMuted ? 0 : 3
   });
 
   useEffect(() => {
@@ -223,7 +223,7 @@ function App() {
           <p className="text-gray-600 dark:text-gray-400">Professional Boxing Training Timer</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 content-center">
           <div className="space-y-8">
             <Timer
               isActive={isActive}
