@@ -205,7 +205,7 @@ function App() {
 
   return (
     <div className={`min-h-screen bg-gray-100 dark:bg-gray-900 py-12 px-4 transition-colors duration-200`}>
-      <div className="max-w-7xl mx-auto space-y-8">
+      <main className="max-w-7xl mx-auto space-y-8">
         <div className="text-center mb-12 relative">
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
@@ -267,7 +267,29 @@ function App() {
           
           <Stats rounds={rounds} sessions={sessions} />
         </div>
-      </div>
+      </main>
+      <footer className="text-center w-full my-10 text-gray-800 dark:text-white ">
+                    <h3>
+                        Created with ❣️ by{' '}
+                        <a
+                            href={'https://lessons.ciac.me/'}
+                            className="link-underline text-primary"
+                        >
+                            Filszu
+                        </a>{' '}
+                       2024
+                    </h3>
+                    <h3 className="">
+                        Give a ⭐ on{' '}
+                        <a
+                            href={'https://github.com/Filszu/'}
+                            className="link-underline text-primary"
+                        >
+                            {/* <FiGithub size={10} />  */}
+                            Github repo
+                        </a>
+                    </h3>
+                </footer>
     </div>
   );
 }
