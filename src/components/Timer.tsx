@@ -59,7 +59,7 @@ const Timer: React.FC<TimerProps> = ({
   }, [isFullscreen]);
 
   useEffect(() => {
-    setFullscreenAvailable(!!document.documentElement.requestFullscreen);
+    setFullscreenAvailable(document.fullscreenEnabled);
   }, []);
 
   useEffect(() => {
@@ -95,7 +95,7 @@ const Timer: React.FC<TimerProps> = ({
     if (isActive && !isFullscreen && fullscreenAvailable) {
       toggleFullscreen().catch(console.warn);
     }
-  }, [isActive, isFullscreen, fullscreenAvailable]);
+  }, [isActive]);
 
   return (
     <div
@@ -175,7 +175,7 @@ const Timer: React.FC<TimerProps> = ({
             {isFullscreen ? 
               <Minimize size={24} className="sm:w-8 sm:h-8" /> : 
               <Maximize size={24} className="sm:w-8 sm:h-8" />
-          }
+            }
           </button>
         )}
       </div>

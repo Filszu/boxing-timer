@@ -37,3 +37,5 @@ const SessionChart: React.FC<SessionChartProps> = ({ data }) => (
     </ResponsiveContainer>
   </div>
 );
+
+export default SessionChart;

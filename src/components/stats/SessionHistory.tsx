@@ -70,3 +70,5 @@ const SessionHistory: React.FC<SessionHistoryProps> = ({
     </div>
   </div>
 );
+
+export default SessionHistory;

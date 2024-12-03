@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Timer from './components/Timer';
 import Settings from './components/Settings';
-import Stats from './components/stats/Stats';
+import Stats from './components/Stats';
 import Presets from './components/Presets';
-import { Dumbbell, Moon, Sun, Bell } from 'lucide-react';
+import { Dumbbell, Moon, Sun } from 'lucide-react';
 import useSound from 'use-sound';
-import { useNotification } from './hooks/useNotification';
 import type { Preset, Session, Round } from './types';
 
 const DEFAULT_SETTINGS: Omit<Preset, 'id' | 'name'> = {
@@ -23,8 +22,6 @@ function App() {
     }
     return false;
   });
-
-  const { permission, requestPermission, showNotification } = useNotification();
 
   // Timer state
   const [roundTime, setRoundTime] = useState(DEFAULT_SETTINGS.roundTime);
@@ -51,7 +48,6 @@ function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Sound effects with volume control
   // Sound effects with volume control
   const [playStart] = useSound('/sounds/alarm2.mp3', { 
     volume: isMuted ? 0 : 10
@@ -130,21 +126,13 @@ function App() {
       const session: Session = {
         id: Date.now().toString(),
         date: new Date().toISOString(),
-        rounds: [...rounds],
+        rounds,
         presetUsed: 'custom',
       };
       setSessions(prev => [...prev, session]);
       setRounds([]);
-
-      // Show completion notification
-      if (permission === 'granted') {
-        showNotification('Workout Complete! 🎉', {
-          body: `Great job! You completed ${totalRounds} rounds.`,
-          // vibrate: [200, 100, 200],
-        });
-      }
     }
-  }, [rounds, totalRounds, permission, showNotification]);
+  }, [rounds]);
 
   const reset = useCallback(() => {
     if (rounds.length > 0) {
@@ -168,12 +156,6 @@ function App() {
             time > 1
           ) {
             playWarning();
-            if (permission === 'granted') {
-              showNotification(isRest ? 'Rest Period Ending!' : 'Round Ending!', {
-                body: `${time - 1} seconds remaining`,
-                silent: true,
-              });
-            }
           } else if (time <= 3 && time > 0) {
             playTick();
           }
@@ -181,26 +163,16 @@ function App() {
         });
       }, 1000);
     } else if (isActive && timeLeft === 0) {
-      if (!isRest && currentRound <= totalRounds) {
+      if (!isRest && currentRound < totalRounds) {
         playEnd();
+        setIsRest(true);
+        setTimeLeft(restTime);
         setRounds(prev => [...prev, {
           round: currentRound,
           duration: roundTime,
           type: 'work',
           timestamp: Date.now(),
         }]);
-        if (currentRound < totalRounds) {
-          setIsRest(true);
-          setTimeLeft(restTime);
-          if (permission === 'granted') {
-            showNotification('Round Complete! 🥊', {
-              body: `Round ${currentRound} finished! Time to rest.`,
-            });
-          }
-        } else {
-          setIsActive(false);
-          saveSession();
-        }
       } else if (isRest) {
         playStart();
         setIsRest(false);
@@ -212,11 +184,16 @@ function App() {
           type: 'rest',
           timestamp: Date.now(),
         }]);
-        if (permission === 'granted') {
-          showNotification('Rest Complete! 🔔', {
-            body: `Get ready for Round ${currentRound + 1}!`,
-          });
-        }
+      } else {
+        playEnd();
+        setIsActive(false);
+        setRounds(prev => [...prev, {
+          round: currentRound,
+          duration: roundTime,
+          type: 'work',
+          timestamp: Date.now(),
+        }]);
+        saveSession();
       }
     }
 
@@ -224,42 +201,30 @@ function App() {
       if (interval) clearInterval(interval);
     };
   }, [isActive, timeLeft, currentRound, totalRounds, isRest, roundTime, restTime,
-      roundEndWarning, restEndWarning, playStart, playEnd, playWarning, playTick, 
-      saveSession, permission, showNotification]);
+      roundEndWarning, restEndWarning, playStart, playEnd, playWarning, playTick, saveSession]);
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-6 sm:py-12 px-4 transition-colors duration-200">
-      <main className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
-        <div className="text-center mb-8 sm:mb-12 relative px-8">
-          <div className="absolute right-0 top-0 flex items-center gap-2">
-            {permission !== 'granted' && (
-              <button
-                onClick={requestPermission}
-                className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600"
-                title="Enable notifications"
-              >
-                <Bell size={20} />
-              </button>
-            )}
-            <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600"
-            >
-              <div className="relative w-6 h-6">
-                <Sun className={`absolute transition-all duration-300 ${isDarkMode ? 'opacity-0 rotate-90' : 'opacity-100 rotate-0'}`} />
-                <Moon className={`absolute transition-all duration-300 ${isDarkMode ? 'opacity-100 rotate-0' : 'opacity-0 -rotate-90'}`} />
-              </div>
-            </button>
-          </div>
+    <div className={`min-h-screen bg-gray-100 dark:bg-gray-900 py-12 px-4 transition-colors duration-200`}>
+      <main className="max-w-7xl mx-auto space-y-8">
+        <div className="text-center mb-12 relative">
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className="absolute right-4 top-0 p-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition-colors duration-200"
+          >
+            <div className="relative w-6 h-6">
+              <Sun className={`absolute transition-all duration-300 ${isDarkMode ? 'opacity-0 rotate-90' : 'opacity-100 rotate-0'}`} />
+              <Moon className={`absolute transition-all duration-300 ${isDarkMode ? 'opacity-100 rotate-0' : 'opacity-0 -rotate-90'}`} />
+            </div>
+          </button>
           <div className="flex items-center justify-center mb-4">
-            <Dumbbell className="text-blue-500 dark:text-blue-400 mr-2 w-6 h-6 sm:w-8 sm:h-8" />
-            <h1 className="text-2xl sm:text-4xl font-bold text-gray-800 dark:text-white truncate">Boxing Timer Pro</h1>
+            <Dumbbell className="text-blue-500 dark:text-blue-400 mr-2" size={32} />
+            <h1 className="text-4xl font-bold text-gray-800 dark:text-white">Boxing Timer Pro</h1>
           </div>
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">Professional Boxing Training Timer</p>
+          <p className="text-gray-600 dark:text-gray-400">Professional Boxing Training Timer</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-          <div className="space-y-6 sm:space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 content-center">
+          <div className="space-y-8">
             <Timer
               isActive={isActive}
               currentRound={currentRound}

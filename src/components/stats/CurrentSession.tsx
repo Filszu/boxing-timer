@@ -17,3 +17,5 @@ const CurrentSession: React.FC<CurrentSessionProps> = ({ rounds }) => (
     <SessionChart data={transformRoundsToChartData(rounds)} />
   </div>
 );
+
+export default CurrentSession;
