@@ -35,8 +35,21 @@
     </script>
 
     <!-- Google AdSense Script -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6202644433627847"
-     crossorigin="anonymous"></script>
+    <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6202644433627847"
+     crossorigin="anonymous"></script> -->
+     <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const isPro = urlParams.get('pro') === 'true';
+    
+      if (!isPro) {
+        console.log('Your not pro Loading Google AdSense script...');
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6202644433627847";
+        script.crossOrigin = "anonymous";
+        document.head.appendChild(script);
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -1,6 +1,6 @@
 # 🥊 Boxing Timer ⏳
 
-![Boxing Timer Screenshot](https://boxing-timer.ciac.me/box_timer.png)
+![Boxing Timer Screenshot](https://boxing-timer.ciac.me/ss/box_timer.png)
 
 Boxing Timer is the perfect tool to help you track your boxing rounds, rest periods, and workouts. Ideal for training sessions and fitness routines.
 
@@ -13,8 +13,8 @@ Boxing Timer is the perfect tool to help you track your boxing rounds, rest peri
 
 ## 📸 Screenshots
 
-![Screenshot 1](https://boxing-timer.ciac.me/box_timer3.png)
-![Screenshot 2](https://boxing-timer.ciac.me/box_timer2.png)
+![Screenshot 1](https://boxing-timer.ciac.me/ss/box_timer3.png)
+![Screenshot 2](https://boxing-timer.ciac.me/ss/box_timer2.png)
 
 ## 📦 Installation
 

@@ -8,9 +8,9 @@ export default defineConfig({
     VitePWA({
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "mask-icon.svg"],
       manifest: {
-        name: "My Awesome App",
-        short_name: "MyApp",
-        description: "My Awesome App description",
+        name: "Boxing Timer PRO",
+        short_name: "BoxingTimer",
+        description: "Boxing Timer PRO",
         theme_color: "#ffffff",
         icons: [
           {
