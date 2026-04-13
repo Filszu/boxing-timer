@@ -32,7 +32,7 @@ const Presets: React.FC<PresetsProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg w-full max-w-md transition-colors duration-200">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg w-full transition-colors duration-200">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Presets</h2>
         <button
@@ -53,6 +53,9 @@ const Presets: React.FC<PresetsProps> = ({
             placeholder="Preset Name"
             className="w-full px-3 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-md mb-2 dark:text-white transition-colors"
           />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+            Saves rounds, rest, warnings, pre-round, and active training (accelerations / beep mode and their options).
+          </p>
           <button
             onClick={handleSavePreset}
             className="btn btn-primary dark:bg-blue-600 dark:hover:bg-blue-700 w-full"
@@ -79,6 +82,17 @@ const Presets: React.FC<PresetsProps> = ({
                 {(preset.preRoundTime ?? 0) > 0
                   ? ` / ${preset.preRoundTime ?? 0}s pre-round`
                   : ''}
+              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                {(preset.activeTrainingMode ?? 'off') === 'acceleration' && (
+                  <span>Active training: accelerations{(preset.showAccelSubtimer ?? false) ? ' · sub-timer' : ''}</span>
+                )}
+                {(preset.activeTrainingMode ?? 'off') === 'beep' && (
+                  <span>Active training: beep mode</span>
+                )}
+                {(preset.activeTrainingMode ?? 'off') === 'off' && (
+                  <span>Active training: off</span>
+                )}
               </div>
             </button>
             <button

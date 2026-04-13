@@ -6,6 +6,7 @@ interface CircularProgressProps {
   strokeWidth?: number;
   isRest?: boolean;
   isPrep?: boolean;
+  isAccelerating?: boolean;
 }
 
 const CircularProgress: React.FC<CircularProgressProps> = ({
@@ -14,6 +15,7 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
   strokeWidth = 12,
   isRest = false,
   isPrep = false,
+  isAccelerating = false,
 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -39,7 +41,13 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
         {/* Progress circle */}
         <circle
           className={`${
-            isPrep ? 'text-yellow-500' : isRest ? 'text-green-500' : 'text-blue-500'
+            isAccelerating
+              ? 'text-red-500'
+              : isPrep
+                ? 'text-yellow-500'
+                : isRest
+                  ? 'text-green-500'
+                  : 'text-blue-500'
           } transition-colors duration-300`}
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}

@@ -10,6 +10,9 @@ interface TimerProps {
   totalRounds: number;
   isRest: boolean;
   isPrep: boolean;
+  isAccelerating: boolean;
+  /** Seconds left in current acceleration window; null hides sub-timer */
+  accelRemainingSeconds: number | null;
   roundTime: number;
   restTime: number;
   preRoundTime: number;
@@ -27,6 +30,8 @@ const Timer: React.FC<TimerProps> = ({
   totalRounds,
   isRest,
   isPrep,
+  isAccelerating,
+  accelRemainingSeconds,
   roundTime,
   restTime,
   preRoundTime,
@@ -107,7 +112,7 @@ const Timer: React.FC<TimerProps> = ({
     <div
       ref={timerRef}
       className={`flex flex-col items-center justify-center space-y-6 bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-8 shadow-lg w-full transition-colors duration-200
-        ${isFullscreen ? 'fixed inset-0 rounded-none z-50' : 'max-w-full sm:max-w-2xl mx-auto'}`}
+        ${isFullscreen ? 'fixed inset-0 rounded-none z-50' : 'w-full'}`}
     >
       <div className="relative">
         {showProgress && (
@@ -116,6 +121,7 @@ const Timer: React.FC<TimerProps> = ({
             size={circleSize}
             isRest={isRest}
             isPrep={isPrep}
+            isAccelerating={isAccelerating}
           />
         )}
         <div className={`${showProgress ? 'absolute inset-0' : ''} flex flex-col items-center justify-center`}>
@@ -127,15 +133,29 @@ const Timer: React.FC<TimerProps> = ({
             <>
               <div
                 className={`text-4xl sm:text-6xl md:text-8xl font-bold tracking-wider ${
-                  isPrep
-                    ? 'text-yellow-500 dark:text-yellow-400'
-                    : isRest
-                      ? 'text-green-500 dark:text-green-400'
-                      : 'text-blue-500 dark:text-blue-400'
+                  isAccelerating
+                    ? 'text-red-500 dark:text-red-400'
+                    : isPrep
+                      ? 'text-yellow-500 dark:text-yellow-400'
+                      : isRest
+                        ? 'text-green-500 dark:text-green-400'
+                        : 'text-blue-500 dark:text-blue-400'
                 } ${isFullscreen ? 'text-9xl' : ''} transition-colors duration-300`}
               >
                 {formatTime(timeLeft)}
               </div>
+
+              {isAccelerating &&
+                accelRemainingSeconds != null &&
+                accelRemainingSeconds > 0 && (
+                  <div
+                    className={`mt-2 px-3 py-1.5 rounded-lg bg-red-100 dark:bg-red-950/60 border border-red-300 dark:border-red-800 ${
+                      isFullscreen ? 'text-3xl px-4 py-2' : 'text-lg sm:text-xl'
+                    } font-mono font-semibold text-red-700 dark:text-red-300`}
+                  >
+                    Accel: {formatTime(accelRemainingSeconds)}
+                  </div>
+                )}
               
               <div className={`text-2xl sm:text-3xl md:text-4xl font-semibold text-gray-600 dark:text-gray-300 mt-4 ${
                 isFullscreen ? 'text-5xl' : ''
@@ -145,14 +165,22 @@ const Timer: React.FC<TimerProps> = ({
               
               <div
                 className={`text-xl sm:text-2xl md:text-3xl font-medium mt-2 ${
-                  isPrep
-                    ? 'text-yellow-500 dark:text-yellow-400'
-                    : isRest
-                      ? 'text-green-500 dark:text-green-400'
-                      : 'text-blue-500 dark:text-blue-400'
+                  isAccelerating
+                    ? 'text-red-500 dark:text-red-400'
+                    : isPrep
+                      ? 'text-yellow-500 dark:text-yellow-400'
+                      : isRest
+                        ? 'text-green-500 dark:text-green-400'
+                        : 'text-blue-500 dark:text-blue-400'
                 } ${isFullscreen ? 'text-4xl' : ''}`}
               >
-                {isPrep ? 'Get ready' : isRest ? 'Rest Period' : 'Work Period'}
+                {isAccelerating
+                  ? 'Acceleration'
+                  : isPrep
+                    ? 'Get ready'
+                    : isRest
+                      ? 'Rest Period'
+                      : 'Work Period'}
               </div>
             </>
           )}
