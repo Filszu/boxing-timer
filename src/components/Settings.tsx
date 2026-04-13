@@ -7,6 +7,8 @@ interface SettingsProps {
   totalRounds: number;
   roundEndWarning: number;
   restEndWarning: number;
+  preRoundTime: number;
+  notificationsEnabled: boolean;
   showProgress: boolean;
   onSettingsChange: (setting: string, value: number | boolean) => void;
 }
@@ -17,6 +19,8 @@ const Settings: React.FC<SettingsProps> = ({
   totalRounds,
   roundEndWarning,
   restEndWarning,
+  preRoundTime,
+  notificationsEnabled,
   showProgress,
   onSettingsChange,
 }) => {
@@ -70,7 +74,38 @@ const Settings: React.FC<SettingsProps> = ({
           />
         </div>
 
+        <div>
+          <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
+            Pre-round countdown (seconds before round 1)
+          </label>
+          <input
+            type="number"
+            value={preRoundTime}
+            onChange={(e) => onSettingsChange('preRoundTime', parseInt(e.target.value, 10) || 0)}
+            className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-yellow-500 focus:border-yellow-500 dark:text-white transition-colors"
+            min="0"
+            max="120"
+          />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Set to 0 to start round 1 immediately.</p>
+        </div>
+
         <div className="pt-4 border-t dark:border-gray-700">
+          <div className="flex items-center mb-3">
+            <Bell size={16} className="mr-2 text-gray-500 dark:text-gray-400" />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Notifications</span>
+          </div>
+          <div className="flex items-center mb-4">
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={notificationsEnabled}
+                onChange={(e) => onSettingsChange('notificationsEnabled', e.target.checked)}
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+              <span className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">Browser notifications</span>
+            </label>
+          </div>
           <div className="flex items-center mb-3">
             <Bell size={16} className="mr-2 text-gray-500 dark:text-gray-400" />
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Countdown Warnings</span>

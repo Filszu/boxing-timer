@@ -9,8 +9,10 @@ interface TimerProps {
   timeLeft: number;
   totalRounds: number;
   isRest: boolean;
+  isPrep: boolean;
   roundTime: number;
   restTime: number;
+  preRoundTime: number;
   showProgress: boolean;
   onToggle: () => void;
   onReset: () => void;
@@ -24,8 +26,10 @@ const Timer: React.FC<TimerProps> = ({
   timeLeft,
   totalRounds,
   isRest,
+  isPrep,
   roundTime,
   restTime,
+  preRoundTime,
   showProgress,
   onToggle,
   onReset,
@@ -35,11 +39,17 @@ const Timer: React.FC<TimerProps> = ({
   const timerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [fullscreenAvailable, setFullscreenAvailable] = React.useState(false);
-  const [showPulse, setShowPulse] = React.useState(false);
-  const isFinished = timeLeft === 0 && currentRound === totalRounds && !isRest;
+  const isFinished =
+    timeLeft === 0 && currentRound === totalRounds && !isRest && !isPrep;
+
+  const segmentDuration = isPrep
+    ? Math.max(preRoundTime, 1)
+    : isRest
+      ? restTime
+      : roundTime;
 
   // Calculate progress percentage
-  const progress = timeLeft / (isRest ? restTime : roundTime);
+  const progress = timeLeft / segmentDuration;
 
   // Calculate responsive size based on viewport
   const getCircleSize = () => {
@@ -61,10 +71,6 @@ const Timer: React.FC<TimerProps> = ({
   useEffect(() => {
     setFullscreenAvailable(document.fullscreenEnabled);
   }, []);
-
-  useEffect(() => {
-    setShowPulse(timeLeft <= 10 && isActive && !isFinished);
-  }, [timeLeft, isActive, isFinished]);
 
   const toggleFullscreen = async () => {
     if (!fullscreenAvailable) return;
@@ -103,13 +109,13 @@ const Timer: React.FC<TimerProps> = ({
       className={`flex flex-col items-center justify-center space-y-6 bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-8 shadow-lg w-full transition-colors duration-200
         ${isFullscreen ? 'fixed inset-0 rounded-none z-50' : 'max-w-full sm:max-w-2xl mx-auto'}`}
     >
-      <div className={`relative ${showPulse ? 'animate-pulse' : ''}`}>
+      <div className="relative">
         {showProgress && (
           <CircularProgress
             progress={progress}
             size={circleSize}
             isRest={isRest}
-            pulseAnimation={showPulse}
+            isPrep={isPrep}
           />
         )}
         <div className={`${showProgress ? 'absolute inset-0' : ''} flex flex-col items-center justify-center`}>
@@ -119,9 +125,15 @@ const Timer: React.FC<TimerProps> = ({
             </div>
           ) : (
             <>
-              <div className={`text-4xl sm:text-6xl md:text-8xl font-bold tracking-wider ${
-                isRest ? 'text-green-500 dark:text-green-400' : 'text-blue-500 dark:text-blue-400'
-              } ${isFullscreen ? 'text-9xl' : ''} transition-colors duration-300`}>
+              <div
+                className={`text-4xl sm:text-6xl md:text-8xl font-bold tracking-wider ${
+                  isPrep
+                    ? 'text-yellow-500 dark:text-yellow-400'
+                    : isRest
+                      ? 'text-green-500 dark:text-green-400'
+                      : 'text-blue-500 dark:text-blue-400'
+                } ${isFullscreen ? 'text-9xl' : ''} transition-colors duration-300`}
+              >
                 {formatTime(timeLeft)}
               </div>
               
@@ -131,10 +143,16 @@ const Timer: React.FC<TimerProps> = ({
                 Round {currentRound}/{totalRounds}
               </div>
               
-              <div className={`text-xl sm:text-2xl md:text-3xl font-medium mt-2 ${
-                isRest ? 'text-green-500 dark:text-green-400' : 'text-blue-500 dark:text-blue-400'
-              } ${isFullscreen ? 'text-4xl' : ''}`}>
-                {isRest ? 'Rest Period' : 'Work Period'}
+              <div
+                className={`text-xl sm:text-2xl md:text-3xl font-medium mt-2 ${
+                  isPrep
+                    ? 'text-yellow-500 dark:text-yellow-400'
+                    : isRest
+                      ? 'text-green-500 dark:text-green-400'
+                      : 'text-blue-500 dark:text-blue-400'
+                } ${isFullscreen ? 'text-4xl' : ''}`}
+              >
+                {isPrep ? 'Get ready' : isRest ? 'Rest Period' : 'Work Period'}
               </div>
             </>
           )}

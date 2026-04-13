@@ -14,6 +14,7 @@ const DEFAULT_SETTINGS: Omit<Preset, "id" | "name"> = {
   totalRounds: 3,
   roundEndWarning: 10,
   restEndWarning: 5,
+  preRoundTime: 0,
 };
 
 function App() {
@@ -26,6 +27,13 @@ function App() {
 
   const { permission, requestPermission, showNotification } = useNotification();
 
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    if (typeof window === "undefined") return true;
+    const stored = localStorage.getItem("boxingNotificationsEnabled");
+    if (stored === null) return true;
+    return stored === "true";
+  });
+
   // Timer state
   const [roundTime, setRoundTime] = useState(DEFAULT_SETTINGS.roundTime);
   const [restTime, setRestTime] = useState(DEFAULT_SETTINGS.restTime);
@@ -36,18 +44,26 @@ function App() {
   const [restEndWarning, setRestEndWarning] = useState(
     DEFAULT_SETTINGS.restEndWarning
   );
+  const [preRoundTime, setPreRoundTime] = useState(DEFAULT_SETTINGS.preRoundTime);
   const [showProgress, setShowProgress] = useState(true);
   const [currentRound, setCurrentRound] = useState(1);
   const [timeLeft, setTimeLeft] = useState(roundTime);
   const [isActive, setIsActive] = useState(false);
   const [isRest, setIsRest] = useState(false);
+  const [isPrep, setIsPrep] = useState(false);
+  const [preRoundConsumed, setPreRoundConsumed] = useState(false);
   const [rounds, setRounds] = useState<Round[]>([]);
   const [isMuted, setIsMuted] = useState(false);
 
   // Presets and sessions state
   const [presets, setPresets] = useState<Preset[]>(() => {
     const saved = localStorage.getItem("boxingPresets");
-    return saved ? JSON.parse(saved) : [];
+    if (!saved) return [];
+    const parsed: Preset[] = JSON.parse(saved);
+    return parsed.map((p) => ({
+      ...p,
+      preRoundTime: p.preRoundTime ?? 0,
+    }));
   });
 
   const [sessions, setSessions] = useState<Session[]>(() => {
@@ -57,7 +73,7 @@ function App() {
 
   // Sound effects with volume control
   // Sound effects with volume control
-  const [playStart] = useSound("/sounds/alarm2.mp3", {
+  const [playStart] = useSound("/sounds/start1.mp3", {
     volume: isMuted ? 0 : 10,
   });
   const [playEnd] = useSound("/sounds/bell.wav", {
@@ -80,6 +96,10 @@ function App() {
     document.documentElement.classList.toggle("dark", isDarkMode);
     localStorage.setItem("darkMode", isDarkMode.toString());
   }, [isDarkMode]);
+
+  useEffect(() => {
+    localStorage.setItem("boxingNotificationsEnabled", String(notificationsEnabled));
+  }, [notificationsEnabled]);
 
   // Save data to localStorage
   useEffect(() => {
@@ -111,6 +131,14 @@ function App() {
       case "showProgress":
         setShowProgress(value as boolean);
         break;
+      case "preRoundTime": {
+        const n = typeof value === "number" ? value : 0;
+        setPreRoundTime(Math.min(120, Math.max(0, Number.isFinite(n) ? n : 0)));
+        break;
+      }
+      case "notificationsEnabled":
+        setNotificationsEnabled(value as boolean);
+        break;
     }
   };
 
@@ -120,6 +148,9 @@ function App() {
     setTotalRounds(preset.totalRounds);
     setRoundEndWarning(preset.roundEndWarning);
     setRestEndWarning(preset.restEndWarning);
+    setPreRoundTime(preset.preRoundTime ?? 0);
+    setIsPrep(false);
+    setPreRoundConsumed(false);
     if (!isActive) setTimeLeft(preset.roundTime);
   };
 
@@ -138,7 +169,7 @@ function App() {
   const saveSession = useCallback(() => {
     if (rounds.length > 0) {
       // Add the current round to the rounds array if the timer is still active
-      if (isActive) {
+      if (isActive && !isPrep) {
         const currentRoundData: Round = {
           round: currentRound,
           duration: isRest ? restTime - timeLeft : roundTime - timeLeft,
@@ -158,7 +189,7 @@ function App() {
       setRounds([]);
 
       // Show completion notification
-      if (permission === "granted") {
+      if (notificationsEnabled && permission === "granted") {
         showNotification("Workout Complete! 🎉", {
           body: `Great job! You completed ${totalRounds} rounds.`,
         });
@@ -173,7 +204,9 @@ function App() {
     restTime,
     timeLeft,
     isRest,
+    isPrep,
     permission,
+    notificationsEnabled,
     showNotification,
   ]);
 
@@ -185,7 +218,38 @@ function App() {
     setCurrentRound(1);
     setTimeLeft(roundTime);
     setIsRest(false);
+    setIsPrep(false);
+    setPreRoundConsumed(false);
   }, [roundTime, rounds, saveSession]);
+
+  const handleToggle = useCallback(() => {
+    if (isActive) {
+      setIsActive(false);
+      return;
+    }
+    if (
+      preRoundTime > 0 &&
+      currentRound === 1 &&
+      !isRest &&
+      !isPrep &&
+      timeLeft === roundTime &&
+      !preRoundConsumed
+    ) {
+      setIsPrep(true);
+      setTimeLeft(preRoundTime);
+      setPreRoundConsumed(true);
+    }
+    setIsActive(true);
+  }, [
+    isActive,
+    preRoundTime,
+    currentRound,
+    isRest,
+    isPrep,
+    timeLeft,
+    roundTime,
+    preRoundConsumed,
+  ]);
 
   useEffect(() => {
     let interval: number | undefined;
@@ -194,12 +258,13 @@ function App() {
       interval = window.setInterval(() => {
         setTimeLeft((time) => {
           if (
+            !isPrep &&
             ((!isRest && time === roundEndWarning + 1) ||
               (isRest && time === restEndWarning + 1)) &&
             time > 1
           ) {
             playWarning();
-            if (permission === "granted") {
+            if (notificationsEnabled && permission === "granted") {
               showNotification(
                 isRest ? "Rest Period Ending!" : "Round Ending!",
                 {
@@ -215,7 +280,16 @@ function App() {
         });
       }, 1000);
     } else if (isActive && timeLeft === 0) {
-      if (!isRest && currentRound <= totalRounds) {
+      if (isPrep) {
+        playStart();
+        setIsPrep(false);
+        setTimeLeft(roundTime);
+        if (notificationsEnabled && permission === "granted") {
+          showNotification("Round 1 — go! 🥊", {
+            body: "Pre-round finished. Fight!",
+          });
+        }
+      } else if (!isRest && currentRound <= totalRounds) {
         playEnd();
         setRounds((prev) => [
           ...prev,
@@ -229,7 +303,7 @@ function App() {
         if (currentRound < totalRounds) {
           setIsRest(true);
           setTimeLeft(restTime);
-          if (permission === "granted") {
+          if (notificationsEnabled && permission === "granted") {
             showNotification("Round Complete! 🥊", {
               body: `Round ${currentRound} finished! Time to rest.`,
             });
@@ -252,7 +326,7 @@ function App() {
             timestamp: Date.now(),
           },
         ]);
-        if (permission === "granted") {
+        if (notificationsEnabled && permission === "granted") {
           showNotification("Rest Complete! 🔔", {
             body: `Get ready for Round ${currentRound + 1}!`,
           });
@@ -279,7 +353,9 @@ function App() {
     playTick,
     saveSession,
     permission,
+    notificationsEnabled,
     showNotification,
+    isPrep,
   ]);
 
   return (
@@ -287,7 +363,7 @@ function App() {
       <main className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
         <div className="text-center mb-8 sm:mb-12 relative px-8">
           <div className="absolute right-0 top-0 flex items-center gap-2">
-            {permission !== "granted" && (
+            {notificationsEnabled && permission !== "granted" && (
               <button
                 onClick={requestPermission}
                 className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-600"
@@ -333,9 +409,11 @@ function App() {
               timeLeft={timeLeft}
               totalRounds={totalRounds}
               isRest={isRest}
+              isPrep={isPrep}
               roundTime={roundTime}
               restTime={restTime}
-              onToggle={() => setIsActive(!isActive)}
+              preRoundTime={preRoundTime}
+              onToggle={handleToggle}
               onReset={reset}
               showProgress={showProgress}
               onMuteToggle={() => setIsMuted(!isMuted)}
@@ -348,6 +426,8 @@ function App() {
               totalRounds={totalRounds}
               roundEndWarning={roundEndWarning}
               restEndWarning={restEndWarning}
+              preRoundTime={preRoundTime}
+              notificationsEnabled={notificationsEnabled}
               showProgress={showProgress}
               onSettingsChange={handleSettingsChange}
             />
@@ -360,6 +440,7 @@ function App() {
                 totalRounds,
                 roundEndWarning,
                 restEndWarning,
+                preRoundTime,
               }}
               onPresetSelect={handlePresetSelect}
               onPresetSave={handlePresetSave}

@@ -6,6 +6,8 @@ export interface Preset {
   totalRounds: number;
   roundEndWarning: number;
   restEndWarning: number;
+  /** Seconds before round 1; 0 disables pre-round countdown */
+  preRoundTime: number;
 }
 
 export interface Round {

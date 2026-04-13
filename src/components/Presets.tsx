@@ -76,6 +76,9 @@ const Presets: React.FC<PresetsProps> = ({
               <div className="font-medium text-gray-800 dark:text-white">{preset.name}</div>
               <div className="text-sm text-gray-600 dark:text-gray-300">
                 {preset.roundTime}s work / {preset.restTime}s rest / {preset.totalRounds} rounds
+                {(preset.preRoundTime ?? 0) > 0
+                  ? ` / ${preset.preRoundTime ?? 0}s pre-round`
+                  : ''}
               </div>
             </button>
             <button

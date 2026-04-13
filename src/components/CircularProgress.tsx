@@ -5,7 +5,7 @@ interface CircularProgressProps {
   size?: number;
   strokeWidth?: number;
   isRest?: boolean;
-  pulseAnimation?: boolean;
+  isPrep?: boolean;
 }
 
 const CircularProgress: React.FC<CircularProgressProps> = ({
@@ -13,14 +13,14 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
   size = 400,
   strokeWidth = 12,
   isRest = false,
-  pulseAnimation = false,
+  isPrep = false,
 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const strokeDashoffset = circumference - (progress * circumference);
 
   return (
-    <div className={`relative ${pulseAnimation ? 'animate-pulse' : ''}`} style={{ width: size, height: size }}>
+    <div className="relative" style={{ width: size, height: size }}>
       {/* Background circle */}
       <svg
         className="absolute transform -rotate-90"
@@ -38,7 +38,9 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
         />
         {/* Progress circle */}
         <circle
-          className={`${isRest ? 'text-green-500' : 'text-blue-500'} transition-all duration-500 ease-in-out`}
+          className={`${
+            isPrep ? 'text-yellow-500' : isRest ? 'text-green-500' : 'text-blue-500'
+          } transition-colors duration-300`}
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
